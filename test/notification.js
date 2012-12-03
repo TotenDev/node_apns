@@ -51,7 +51,7 @@ tap.test("\nInitialization content (all params in initialization)",function (t) 
 });
 
 tap.test("\nInitialization content",function (t) {
-  t.plan(6);
+  t.plan(7);
   var notification ,
       token = "64656a736e636f656e646b6462646b6468646c776e6464656465776465776662",
       APS = {alert:"Hello world!"};
@@ -63,12 +63,12 @@ tap.test("\nInitialization content",function (t) {
     t.equal(notification.alert,APS["alert"],"Text alert is equal");
     t.equal(notification.sound,"bipbip.aiff","Sound is equal");
     t.equal(notification.badge,undefined,"Badge is undefined");
+    t.equal(notification.payload["foo"],"bar",'preserved external payload content');
   });
 });
 
-
-tap.test("\nEncoding with 'normalizedPayload' method",function (t) {
-  t.plan(3);
+tap.test("\nEncoding with 'normalizedPayload' function",function (t) {
+  t.plan(4);
   var notification ,
       token = "64656a736e636f656e646b6462646b6468646c776e6464656465776465776662",
       APS = {alert:"Hello world!", sound:"bipbip.aiff", };
@@ -78,5 +78,25 @@ tap.test("\nEncoding with 'normalizedPayload' method",function (t) {
     var supposedPayload = "{ aps: { alert: 'Hello world!', sound: 'bipbip.aiff' } }";
     t.equal(payload["aps"]["alert"],"Hello world!",'APS[\'alert\'] contains all informations');
     t.equal(payload["aps"]["sound"],"bipbip.aiff",'APS[\'sound\'] contains all informations');
+    t.equal(payload["foo"],"bar",'preserved external payload content');
+  });
+});
+
+
+
+
+//Need better coverage 
+tap.test("\nEncoding and sending without throw",function (t) {
+  t.plan(1);
+  var notification ,
+      token = "64656a736e636f656e646b6462646b6468646c776e6464656465776465776662",
+      APS = {alert:"Hello world!", sound:"bipbip.aiff", };
+  t.doesNotThrow(function () {
+    notification = node_apns.Notification(token, {foo: "bar", aps:APS});
+    //
+    var payload = notification.payloadString();
+    //
+    payload = notification.toNetwork();
+    payload = notification.toNetwork(2);
   });
 });
