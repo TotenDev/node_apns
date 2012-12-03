@@ -1,1 +1,1 @@
-module.exports = require('./lib/apns');
+module.exports.Device = require('./lib/device.js');
