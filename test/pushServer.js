@@ -10,13 +10,9 @@ var node_apns = require("./../index.js"),
 
 function connect() {
   if (server_instance) { server_instance.disconnect(); }
-  server_instance = node_apns.Feedback({cert:"djkdhjdj", key:"jijk.pem"});
-  server_instance.on('device', function(time, token) {
-      console.log('Token', token, "is not responding since", new Date(time * 1000));
-  });
-  server_instance.on('connected', function () { 
-      console.log('Connected!'); 
-  });
+  server_instance = node_apns.Push({cert:"djkdhjdj", key:"jijk.pem"});
+  server_instance.on('sent', function(notification) { console.log("Sent",notification); });
+  server_instance.on('notificationError', function(notification) { });
   server_instance.on('error', function (err) { 
       console.log('Server errored ',err);
       console.log('Server will terminate');
@@ -26,6 +22,9 @@ function connect() {
 //      console.log("Restarting server in 2 secs");
 //      setTimeout(function () {  connect();  },2000);
   });
+  var Notification = node_apns.Notification,
+      n = Notification("abcdefghabcdefgh", {foo: "bar", aps:{"alert":"Hello world!", "sound":"default"}});
+  server_instance.sendNotification(n,function (not) { console.log("Sent",not); });
 }
 
 connect();
