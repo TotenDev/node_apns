@@ -18,7 +18,7 @@ First, require *node_apns*
 var Push = require('node_apns').Push;
 ```
 
-Create a new on-demand push connexion
+Create a new on-demand push connection
 
 ```js
 var push = Push({
@@ -62,7 +62,7 @@ if (n.isValid()) push.sendNotification(n);
 ```
 
 
-The connexion is on-demand and will only be active when a notification needs to be sent. After a first notification, it will stay opened until it dies. When it dies, a new notification will trigger the re-connexion.
+The connection is on-demand and will only be active when a notification needs to be sent. After a first notification, it will stay opened until it dies. When it dies, a new notification will trigger the re-connection.
 
 For everything to work nicely, you should register for 'error' events (push.on('error', function() {...})) to prevent the node's runloop from throwing exceptions when they occur.
 
@@ -83,11 +83,11 @@ For everything to work nicely, you should register for 'error' events (push.on('
 
 Push objects emit these events:
 
-* 'clientError' (exception) when a client error occured before connexion
+* 'clientError' (exception) when a client error occured before connection
 * 'authorized' when connected and authorized
 * 'error' (exception) when an error/exception occurs (ENOENT EPIPE etc...)
-* 'end' when the server ended the connexion (FIN packet)
-* 'close' when the server closed the connexion
+* 'end' when the server ended the connection (FIN packet)
+* 'close' when the server closed the connection
 * 'notificationError' (String errorCode, notificationUID) when Apple reports a *bad* notification
 * 'buffer' when the cleartextStream.write() returned false (meaning it is now buffering writes until next 'drain')
 * 'drain' when the cleartextStream is not buffering writes anymore
@@ -95,49 +95,46 @@ Push objects emit these events:
 
 ### Additional methods
 
-* push.close([Bool now]): force the closing of a connexion. If now is not specified (default), "After the write queue is drained, close".
+* push.close([Bool now]): force the closing of a connection. If now is not specified (default), "After the write queue is drained, close".
 
 
 ## Feedback
 
-Create an immediate feedback connexion
+Create an immediate feedback connection
 
 ```js
 var feedback = require('node_apns').Feedback({cert:cert_data, key:key_data});
-
-feedback.on('device', function (time, token) {
-	console.log('Token', token, 'did not respond to notification on', new Date(time * 1000));
+feedback.on('device', function(time, token) {
+    console.log('Token', token, "is not responding since", new Date(time * 1000));
 });
-
-feedback.on('end', function () {
-	console.log('Done');
+feedback.on('connected', function () { 
+    console.log('Connected!'); 
+});
+feedback.on('error', function (err) { 
+    console.log('Server errored ',err);
+    console.log('Server will terminate');
+});
+feedback.on('end', function () { 
+    console.log('Done!'); 
 });
 ```
 
 ### Constructor
 
-	Feedback(tls_options, options)
+	Feedback(tls_options)
+	
+	tls_options: {cert:cert_data, key:key_data [,...]} 
+	//see http://nodejs.org/api/tls.html#tls_tls_connect_port_host_options_callback for more details
 
-	tls_options: {cert:cert_data, key:key_data [,...]} // See Node.js documentation at http://nodejs.org/api/tls.html#tls_tls_connect_options_secureconnectlistener
-
-	options: {
-		host:<gateway-host | APNS.feedback.host>, 
-		port:<gateway-port | APNS.feedback.port>, 
-		
-		bufferSize:<uint | 1>, /* size of tuple buffer in tuples unit */
-		verbose:<Bool | false>
-	}
-
-A feedback connexion is stopped by Apple when no more devices are to be reported.
+A feedback connection is stopped by Apple when no more devices are to be reported.
 
 ### Events
 
 Feedback objects emit these events:
 
-* 'clientError' (exception) when a client error occured before connexion
+* 'connected' secure connection is established
 * 'error' (exception) when an error/exception occurs (ENOENT EPIPE etc...)
-* 'end' when the server ended the connexion (FIN packet)
-* 'close' when the server closed the connexion
+* 'end' when the server ended the connection (FIN packet)
 * 'device' (uint time, String token) when a device token is reported by Apple
 
 
@@ -237,59 +234,6 @@ The token string must be a valid hex string. You can check it with the isValid()
 
 ```js
 if (d.isValid()) { ... }
-```
-
-## "Constants"
-
-Apple's service define some properties that are accessible through the APNS exports
-
-```js
-var APNS = {
-	/*
-		SOURCE: http://developer.apple.com/library/ios/#DOCUMENTATION/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingWIthAPS/CommunicatingWIthAPS.html
-	*/
-
-	development: {
-		host: 'gateway.sandbox.push.apple.com',
-		port: 2195
-	},
-	production: {
-		host: 'gateway.push.apple.com',
-		port: 2195
-	},
-	feedback: {
-		port: 2196,
-		tupleSize: 38 /* The feedback binary tuple's size in Bytes (4 + 2 + 32) */
-	},
-	errors : {
-		'0': 'No errors encountered',
-		'1': 'Processing error',
-		'2': 'Missing device token',
-		'3': 'Missing topic',
-		'4': 'Missing payload',
-		'5': 'Invalid token size',
-		'6': 'Invalid topic size',
-		'7': 'Invalid payload size',
-		'8': 'Invalid token',
-		'255': 'None (unknown)'
-	}		
-};
-```
-
-You can use them for example to specify a development gateway to your Push connexion (default is the production gateway)
-
-```js
-var push = Push({cert:cert_data, key:key_data}, {
-	host: require('node_apns').APNS.development.host
-});
-```
-
-You can also use the errors to get a meaningful output of the errorCode provided by Apple when 'notificationError' occurs
-
-```js
-	push.on('notificationError', function (errorCode, notificationUID) {
-		console.log('Notification with UID', notifcationUID, 'Error:', require('node_apns').APNS.errors[errorCode]);
-	});
 ```
 
 # License terms
