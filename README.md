@@ -8,9 +8,14 @@ Both simple and enhenced notifications are handled.
 
 [![Build Status](https://secure.travis-ci.org/TotenDev/node_apns.png?branch=master)](https://travis-ci.org/TotenDev/node_apns)
 
-## Push
+## Configuration
 
-### Basics
+Almost all configurations are done in initialization of objects, BUT to set Apple push servers to development you must use the code below, so it'll use sandbox gateways to send push notifications.
+```js
+	process.env['apnsDev'] = "TRUE";
+```
+
+## Push
 
 First, require *node_apns*
 
@@ -50,8 +55,8 @@ push.on('error', function (error) { console.log('Yipikaye!', error); });
 Create a new Notification
 
 ```js
-var Notification = require('node_apns').Notification
-,	n = Notification("abcdefghabcdefgh", {foo: "bar", aps:{"alert":"Hello world!", "sound":"default"}});
+var Notification = require('node_apns').Notification,
+	n = Notification("abcdefghabcdefgh", {foo: "bar", aps:{"alert":"Hello world!", "sound":"default"}});
                       /*  ^----- fake device token hex string */
 ```
 
@@ -59,8 +64,11 @@ Send the notification
 
 ```js
 if (n.isValid()) push.sendNotification(n);
+OR
+if (n.isValid()) push.sendNotification(n,function (not){
+	console.log("sent notification",not);
+});
 ```
-
 
 The connection is on-demand and will only be active when a notification needs to be sent. After a first notification, it will stay opened until it dies. When it dies, a new notification will trigger the re-connection.
 
@@ -68,38 +76,24 @@ For everything to work nicely, you should register for 'error' events (push.on('
 
 ### Constructor
 
-	Push(tls_options, options)
+	Push(tls_options)
 
-	tls_options: {cert:cert_data, key:key_data [,...]} // See Node.js documentation at http://nodejs.org/api/tls.html#tls_tls_connect_options_secureconnectlistener
-
-	options: {
-		host:<gateway-host | APNS.production.host>, 
-		port:<gateway-port | APNS.production.port>, 
-		enhenced:<Bool | true>, /* enhenced notifications or not */
-		verbose:<Bool | false>
-	}
+	tls_options: {cert:cert_data, key:key_data [,...]} 
+	//see http://nodejs.org/api/tls.html#tls_tls_connect_port_host_options_callback for more details
 
 ### Events
-
 Push objects emit these events:
 
-* 'clientError' (exception) when a client error occured before connection
-* 'authorized' when connected and authorized
 * 'error' (exception) when an error/exception occurs (ENOENT EPIPE etc...)
 * 'end' when the server ended the connection (FIN packet)
-* 'close' when the server closed the connection
 * 'notificationError' (String errorCode, notificationUID) when Apple reports a *bad* notification
-* 'buffer' when the cleartextStream.write() returned false (meaning it is now buffering writes until next 'drain')
-* 'drain' when the cleartextStream is not buffering writes anymore
 * 'sent' (notification) when a notification has been written to the cleartextStream
 
 ### Additional methods
-
-* push.close([Bool now]): force the closing of a connection. If now is not specified (default), "After the write queue is drained, close".
+* `push.disconnect();` -- will close as soon as it can
 
 
 ## Feedback
-
 Create an immediate feedback connection
 
 ```js
@@ -129,22 +123,21 @@ feedback.on('end', function () {
 A feedback connection is stopped by Apple when no more devices are to be reported.
 
 ### Events
-
 Feedback objects emit these events:
-
 * 'connected' secure connection is established
 * 'error' (exception) when an error/exception occurs (ENOENT EPIPE etc...)
 * 'end' when the server ended the connection (FIN packet)
 * 'device' (uint time, String token) when a device token is reported by Apple
 
+### Additional methods
+* `feedback.disconnect();` -- will close as soon as it can
 
 ## Notification
-
 You can create Notification objects many different ways:
 
 ```js
-var Device = require("node_apns").Device
-,	tokenString = "abcdefghabcdefgh";
+var Device = require("node_apns").Device,
+	tokenString = "abcdefghabcdefgh";
 
 // Create a notification with no device and no payload
 n = Notification(); 
@@ -168,20 +161,17 @@ n = Notification(tokenString, {foo: "bar"});
 n = Notification(tokenString, {foo: "bar", aps:{alert:"Hello world!", sound:"bipbip.aiff"}});
 ```
 
-### Accessors
+### Properties
 
 #### Payload properties
-
 * notification.alert
 * notification.badge
 * notification.sound
 
 If you need to specify a custom key, then use:
-
 * notification.payload = {...custom-content...}
 
 Example:
-
 ```js
 n = Notification();
 n.payload = {
@@ -190,25 +180,20 @@ n.payload = {
 };
 n.alert = "Diner tonight?";
 n.sound = "TheLoveBoat.aiff";
+var badge = n.badge;
+n.badge = badge+10;
 ```
 
 Beware that notification.{alert|badge|sound} will overwrite the content of notification.payload.aps if it exists prior to using them.
 
 #### Other properties
+* notification.device: the Device object
+* notification.encoding: the notification encoding (default is "utf8")
+* notification.expiry: when notification expiry
+* notification.identifier: notification unique identifier as set (by the push object) when written to the cleartextStream
 
-* notification.device: get or set the Device object
-* notification.encoding: get or set the notification encoding (default is "utf8")
-
-#### Enhenced notification properties
-
-* notification.expiry: get or set the enhenced notification expiry
-* notification.identifier: get the notification unique identifier as set (by the push object) when written to the cleartextStream
-
-
-### Checkings
-
+### Validation
 You should always check the notification's validity before sending it.
-
 ```js
 if (n.isValid()) { push.sendNotification(n); } 
 else {
@@ -218,20 +203,19 @@ else {
 ```
 
 ## Device
-
 ```js
-// Create a device object with a token (hex) String
+// Create a device object with a token (hex) String with 64 characters
 d = Device("abcdefabcdef");
+
+OR
 
 // Create a device object with a Buffer (binary) token
 var buffer = new Buffer(32);
 d = Device(buffer);
 ```
 
-### Checkings
-
+### Validation
 The token string must be a valid hex string. You can check it with the isValid() method:
-
 ```js
 if (d.isValid()) { ... }
 ```

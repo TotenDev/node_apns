@@ -6,7 +6,6 @@
 //
   
 var node_apns = require("./../index.js"),
-    tap = require('tap'),
     server_instance = null;
 
 function connect() {
@@ -24,8 +23,8 @@ function connect() {
   });
   server_instance.on('end', function () { 
       console.log('Done!'); 
-      console.log("Restarting server in 2 secs");
-      setTimeout(function () {  connect();  },2000);
+//      console.log("Restarting server in 2 secs");
+//      setTimeout(function () {  connect();  },2000);
   });
 }
 

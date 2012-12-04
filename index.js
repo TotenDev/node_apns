@@ -7,5 +7,5 @@
 
 module.exports.Device = require('./lib/apnDevice.js');
 module.exports.Notification = require('./lib/apnNotification.js');
-
+module.exports.Push = require('./lib/apnPush.js');
 module.exports.Feedback = require('./lib/apnFeedback.js');
