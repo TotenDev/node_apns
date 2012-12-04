@@ -1,7 +1,7 @@
 //
-// device.js — APNRS
+// device.js — node_apns
 // today is 12/03/12, it is now 06:05 PM
-// created by TotenDev
+// created by Thierry Passeron
 // see LICENSE for details.
 //
   
