@@ -7,6 +7,8 @@ The Push and Feedback objects are EventEmitter-s and publish a large number of e
 Both simple and enhenced notifications are handled. 
 
 [![Build Status](https://secure.travis-ci.org/TotenDev/node_apns.png?branch=master)](https://travis-ci.org/TotenDev/node_apns)
+[![Dependency Status](https://gemnasium.com/TotenDev/node_apns.png)](https://gemnasium.com/TotenDev/node_apns)
+
 
 ## Configuration
 

@@ -15,7 +15,7 @@
     "apns"
   ],
   "devDependencies" : {
-      "tap" : "0.0.x"
+      "tap" : "0.4.x"
   },
   "main": "index.js",
   "repository": {
