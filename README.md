@@ -8,7 +8,7 @@ Both simple and enhenced notifications are handled.
 
 [![Build Status](https://secure.travis-ci.org/TotenDev/node_apns.png?branch=master)](https://travis-ci.org/TotenDev/node_apns)
 [![Dependency Status](https://gemnasium.com/TotenDev/node_apns.png)](https://gemnasium.com/TotenDev/node_apns)
-
+[![Code Climate](https://codeclimate.com/github/TotenDev/node_apns.png)](https://codeclimate.com/github/TotenDev/node_apns)
 
 ## Configuration
 
